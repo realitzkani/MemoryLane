@@ -324,7 +324,7 @@
 <!-- truths & lies question -->
 <section class="scene" id="sL">
   <div class="card">
-    <span class="eyebrow">question 5</span>
+    <span class="eyebrow">question 6</span>
     <h1>2 Truths, 2 Lies</h1>
     <p>(tap the lies.)</p>
     <div class="lies" id="lieOpts"></div>
@@ -346,8 +346,8 @@
 <!-- scene 3: runaway button -->
 <section class="scene" id="s3">
   <div class="card">
-    <span class="eyebrow">bonus round</span>
-    <h1>are you the cutest person alive?</h1>
+    <span class="eyebrow">question 5</span>
+    <h1>You know ur the most beautiful person in the universe right?</h1>
     <div id="play">
       <button class="btn" id="yesBtn">yes 😊</button>
       <button class="btn ghost" id="noBtn">no</button>
@@ -610,7 +610,7 @@ const nickNext = document.getElementById('nickNext');
 let nickname = null, nickDone = false;
 nickInput.addEventListener('input', ()=>{ nickNext.disabled = nickInput.value.trim() === ''; });
 nickNext.addEventListener('click', ()=>{
-  if(nickDone){ go('sL'); return; }
+  if(nickDone){ go('s3'); return; }
   nickname = nickInput.value.trim();
   if(!nickname) return;
   nickDone = true;
@@ -654,7 +654,7 @@ lNext.addEventListener('click', ()=>{
     lDone = true;
     flashGreen();
     miniBurst(14);
-    lMsg.textContent = "Correct! You know me so well ❤️";
+    lMsg.textContent = "Correct! ❤️";
     lNext.textContent = 'Next ❤️';
   } else {
     lTries--;
@@ -679,14 +679,14 @@ const qNum  = document.getElementById('qNum');
 const qTaunt= document.getElementById('qTaunt');
 
 function startQuiz(){
-  if(CONFIG.quiz.length === 0){ go('s3'); return; }
+  if(CONFIG.quiz.length === 0){ go('s4'); return; }
   qi = 0; score = 0; showQ();
 }
 
 function showQ(){
   const item = CONFIG.quiz[qi];
   missed = false;
-  qNum.textContent = 'question ' + (qi+6) + ' / ' + (CONFIG.quiz.length+5);
+  qNum.textContent = 'question ' + (qi+7) + ' / ' + (CONFIG.quiz.length+6);
   qText.textContent = item.q;
   qTaunt.textContent = '';
   qAns.innerHTML = '';
@@ -705,7 +705,7 @@ function showQ(){
         qAns.querySelectorAll('.ans').forEach(x=>x.disabled = true);
         setTimeout(()=>{
           qi++;
-          qi < CONFIG.quiz.length ? showQ() : go('s3');
+          qi < CONFIG.quiz.length ? showQ() : go('s4');
         }, 750);
       } else {
         missed = true;
@@ -737,7 +737,7 @@ noBtn.addEventListener('touchstart', e=>{e.preventDefault(); dodge();}, {passive
 noBtn.addEventListener('click', dodge);
 document.getElementById('yesBtn').addEventListener('click', ()=>{
   miniBurst(14);
-  setTimeout(()=>go('s4'), 350);
+  setTimeout(()=>go('sL'), 350);
 });
 
 /* ── heart pump ── */
