@@ -158,11 +158,9 @@
 <!-- scene 1: envelope -->
 <section class="scene on" id="s1">
   <div class="card">
-    <span class="eyebrow" id="psst">psst…</span>
     <span class="big">❤️</span>
-    <h1>i made you something</h1>
-    <p>no occasion. just because.</p>
-    <button class="btn" onclick="go('s2'); startQuiz()">open it</button>
+    <h1>Pop quiz for My Love.</h1>
+    <button class="btn" onclick="go('s2'); startQuiz()">Start Quizz!</button>
   </div>
 </section>
 
@@ -243,7 +241,6 @@ const CONFIG = {
 };
 /* ═════════════════════════════════════════ */
 
-document.getElementById('psst').textContent = 'psst… ' + CONFIG.herName;
 document.getElementById('msg').textContent = CONFIG.message;
 document.getElementById('signed').textContent = CONFIG.signed;
 
@@ -402,10 +399,10 @@ if(!matchMedia('(prefers-reduced-motion: reduce)').matches){
     a.style.left = Math.random()*100 + 'vw';
     a.style.fontSize = (12 + Math.random()*20) + 'px';
     a.style.opacity = (.08 + Math.random()*.15).toFixed(2);
-    a.style.animationDuration = (7 + Math.random()*5) + 's';
+    a.style.animationDuration = (16 + Math.random()*8) + 's';
     ambient.appendChild(a);
-    setTimeout(()=>a.remove(), 12500);
-  }, 650);
+    setTimeout(()=>a.remove(), 25000);
+  }, 900);
 }
 </script>
 </body>
