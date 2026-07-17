@@ -148,6 +148,21 @@
   }
   #volSlider{width:110px;accent-color:var(--red)}
 
+  /* unique question */
+  .uopts{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:18px}
+  .uopt{
+    font-family:'Nunito',sans-serif;font-weight:800;font-size:.95rem;
+    color:var(--cream);background:#2b0712;
+    border:2.5px solid var(--rose);border-radius:999px;
+    padding:10px 16px;cursor:pointer;
+    box-shadow:3px 3px 0 var(--bg0);
+    transition:transform .08s, background .15s;
+  }
+  .uopt:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--bg0)}
+  .uopt.on{background:var(--red);border-color:#fff}
+  .uopt:focus-visible{outline:3px dashed var(--rose);outline-offset:2px}
+  #uMsg{min-height:1.5em;margin-top:14px;font-weight:800;color:var(--rose)}
+
   /* runaway */
   #play{position:relative;height:210px;margin-top:6px}
   #play .btn{position:absolute}
@@ -263,6 +278,18 @@
     </div>
     <div id="songPick"></div>
     <button class="btn" id="songNext" disabled>Next ❤️</button>
+  </div>
+</section>
+
+<!-- unique question -->
+<section class="scene" id="sU">
+  <div class="card">
+    <span class="eyebrow">question 3</span>
+    <h1>What makes you unique?</h1>
+    <p>(You can choose multiple.)</p>
+    <div class="uopts" id="uOpts"></div>
+    <p id="uMsg"></p>
+    <button class="btn" id="uNext" disabled>Done!</button>
   </div>
 </section>
 
@@ -465,19 +492,75 @@ function renderSongs(results){
       if(r.previewUrl){
         const audio = document.getElementById('songAudio');
         audio.src = r.previewUrl;
-        audio.volume = volSlider.value / 100;
-        audio.play().catch(()=>{});
+        playWithFade(audio);
         document.getElementById('volWrap').style.display = 'flex';
       }
     });
     songList.appendChild(b);
   });
 }
+let fadeTimer = null;
+function playWithFade(audio){
+  clearInterval(fadeTimer);
+  audio.volume = 0;
+  audio.play().catch(()=>{});
+  fadeTimer = setInterval(()=>{
+    const t = volSlider.value / 100;
+    if(audio.volume < t - 0.004){
+      audio.volume = Math.min(t, audio.volume + Math.max(t/30, 0.002));
+    } else {
+      audio.volume = t;
+      clearInterval(fadeTimer);
+    }
+  }, 100);
+}
 const volSlider = document.getElementById('volSlider');
 volSlider.addEventListener('input', ()=>{
+  clearInterval(fadeTimer);
   document.getElementById('songAudio').volume = volSlider.value / 100;
 });
-songNext.addEventListener('click', ()=>{ if(chosenSong){ go('s2'); startQuiz(); } });
+songNext.addEventListener('click', ()=>{ if(chosenSong) go('sU'); });
+
+/* ── unique question ── */
+const U_OPTS = ["Your Smile","Your Laugh","Your Face","Your Body","Your Eyes","Your Hands","Your Personality","Your Hair","Your Smartness"];
+const uWrap = document.getElementById('uOpts');
+const uNext = document.getElementById('uNext');
+const uSel = new Set();
+let uTries = 4, uDone = false;
+U_OPTS.forEach(o=>{
+  const b = document.createElement('button');
+  b.className = 'uopt';
+  b.textContent = o;
+  b.addEventListener('click', ()=>{
+    if(uDone) return;
+    b.classList.toggle('on');
+    b.classList.contains('on') ? uSel.add(o) : uSel.delete(o);
+    if(!uDone) uNext.disabled = uSel.size === 0;
+  });
+  uWrap.appendChild(b);
+});
+const uMsg = document.getElementById('uMsg');
+uNext.addEventListener('click', ()=>{
+  if(uDone){ go('s2'); startQuiz(); return; }
+  if(uSel.size === U_OPTS.length){
+    uDone = true;
+    flashGreen();
+    burst();
+    uMsg.textContent = "Correct! Its everything, your unique in every way ❤️";
+    uNext.textContent = 'Next ❤️';
+  } else {
+    uTries--;
+    flashRed();
+    if(uTries <= 0){
+      uDone = true;
+      uMsg.textContent = "They're all correct cause everything about you is unique.";
+      uNext.textContent = 'Next ❤️';
+      uNext.disabled = false;
+    } else {
+      uMsg.textContent = 'wrong. ' + uTries + (uTries === 1 ? ' try' : ' tries') + ' left';
+    }
+  }
+});
 
 /* ── quiz ── */
 let qi = 0, score = 0, missed = false;
@@ -491,7 +574,7 @@ function startQuiz(){ qi = 0; score = 0; showQ(); }
 function showQ(){
   const item = CONFIG.quiz[qi];
   missed = false;
-  qNum.textContent = 'question ' + (qi+3) + ' / ' + (CONFIG.quiz.length+2);
+  qNum.textContent = 'question ' + (qi+4) + ' / ' + (CONFIG.quiz.length+3);
   qText.textContent = item.q;
   qTaunt.textContent = '';
   qAns.innerHTML = '';
