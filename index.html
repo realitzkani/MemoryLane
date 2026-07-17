@@ -111,9 +111,9 @@
   .pimg.sel::after{content:'❤️';position:absolute;top:4px;right:6px;font-size:1.05rem;filter:drop-shadow(0 1px 2px #000)}
   .pimg:focus-visible{outline:3px dashed var(--rose);outline-offset:2px}
   #pMsg{min-height:1.5em;margin-top:14px;font-weight:800;color:var(--rose)}
-  #flash{position:fixed;inset:0;background:#ff0022;opacity:0;pointer-events:none;z-index:50}
-  #flash.go{animation:redflash .45s ease-out}
-  @keyframes redflash{0%{opacity:.55}100%{opacity:0}}
+  #flash{position:fixed;inset:0;opacity:0;pointer-events:none;z-index:50}
+  #flash.go{animation:flashfade .6s ease-out}
+  @keyframes flashfade{0%{opacity:.22}100%{opacity:0}}
 
   /* runaway */
   #play{position:relative;height:210px;margin-top:6px}
@@ -342,6 +342,7 @@ document.getElementById('pSubmit').addEventListener('click', ()=>{
   if(pDone) return;
   if(pSel.size === PHOTOS){
     pDone = true;
+    flashGreen();
     pMsg.textContent = "Correct! Theyre all your best looking cause your always beautiful every time.";
     burst();
     setTimeout(()=>{ go('s2'); startQuiz(); }, 2800);
@@ -357,10 +358,13 @@ document.getElementById('pSubmit').addEventListener('click', ()=>{
     }
   }
 });
-function flashRed(){
+function flashScreen(color){
   const f = document.getElementById('flash');
+  f.style.background = color;
   f.classList.remove('go'); void f.offsetWidth; f.classList.add('go');
 }
+function flashRed(){ flashScreen('#ff5566'); }
+function flashGreen(){ flashScreen('#3aff8c'); }
 
 /* ── quiz ── */
 let qi = 0, score = 0, missed = false;
@@ -387,6 +391,7 @@ function showQ(){
       if(i === item.correct){
         b.classList.add('right');
         if(!missed) score++;
+        flashGreen();
         qTaunt.textContent = 'correct ❤️';
         miniBurst(10);
         qAns.querySelectorAll('.ans').forEach(x=>x.disabled = true);
@@ -397,6 +402,7 @@ function showQ(){
       } else {
         missed = true;
         b.classList.add('wrong');
+        flashRed();
         qTaunt.textContent = CONFIG.wrongTaunts[Math.floor(Math.random()*CONFIG.wrongTaunts.length)];
       }
     });
