@@ -163,6 +163,22 @@
   .uopt:focus-visible{outline:3px dashed var(--rose);outline-offset:2px}
   #uMsg{min-height:1.5em;margin-top:14px;font-weight:800;color:var(--rose)}
 
+  /* truths & lies */
+  .lies{display:flex;flex-direction:column;gap:10px;margin-top:18px}
+  .lie{
+    font-family:'Nunito',sans-serif;font-weight:800;font-size:1rem;
+    color:var(--cream);background:#2b0712;text-align:left;
+    border:2.5px solid var(--rose);border-radius:16px;
+    padding:13px 16px;cursor:pointer;
+    box-shadow:3px 3px 0 var(--bg0);
+    transition:transform .08s, background .15s;
+  }
+  .lie:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--bg0)}
+  .lie.on{background:var(--red);border-color:#fff}
+  .lie.reveal{background:var(--deep);border-color:#fff}
+  .lie:focus-visible{outline:3px dashed var(--rose);outline-offset:2px}
+  #lMsg{min-height:1.5em;margin-top:14px;font-weight:800;color:var(--rose)}
+
   /* runaway */
   #play{position:relative;height:210px;margin-top:6px}
   #play .btn{position:absolute}
@@ -301,7 +317,19 @@
     <div class="songbox">
       <input id="nickInput" type="text" placeholder="type it..." autocomplete="off">
     </div>
-    <button class="btn" id="nickNext" disabled>Next ❤️</button>
+    <button class="btn" id="nickNext" disabled>Done!</button>
+  </div>
+</section>
+
+<!-- truths & lies question -->
+<section class="scene" id="sL">
+  <div class="card">
+    <span class="eyebrow">question 5</span>
+    <h1>2 Truths, 2 Lies</h1>
+    <p>(tap the lies.)</p>
+    <div class="lies" id="lieOpts"></div>
+    <p id="lMsg"></p>
+    <button class="btn" id="lNext" disabled>Done!</button>
   </div>
 </section>
 
@@ -367,15 +395,7 @@
 /* ═══════════════ EDIT THIS ═══════════════ */
 const CONFIG = {
   herName: "cutie",                          // her name
-  quiz: [                                    // your quiz — edit q, options, correct (0-3)
-    { q:"where was our first date?",
-      options:["the movies","that restaurant","a walk","you forgot?? 😤"], correct:1 },
-    { q:"what's my favorite thing about you?",
-      options:["your smile","your laugh","your heart","impossible to pick"], correct:3 },
-    { q:"who said 'i love you' first?",
-      options:["me","you","same time","the dog"], correct:0 },
-    { q:"what are we doing forever?",
-      options:["annoying each other","being cute","stealing fries","all of the above"], correct:3 }
+  quiz: [                                    // add more questions here later
   ],
   wrongTaunts:["nope 😤","girl…","try again","wrong!! smh"],
   message:"no special reason for this. i just love you, and i wanted you to have a little corner of the internet that's only yours.",
@@ -587,14 +607,68 @@ uNext.addEventListener('click', ()=>{
 /* ── nickname question ── */
 const nickInput = document.getElementById('nickInput');
 const nickNext = document.getElementById('nickNext');
-let nickname = null;
+let nickname = null, nickDone = false;
 nickInput.addEventListener('input', ()=>{ nickNext.disabled = nickInput.value.trim() === ''; });
 nickNext.addEventListener('click', ()=>{
+  if(nickDone){ go('sL'); return; }
   nickname = nickInput.value.trim();
   if(!nickname) return;
+  nickDone = true;
+  nickInput.disabled = true;
   flashGreen();
   miniBurst(8);
-  setTimeout(()=>{ go('s2'); startQuiz(); }, 300);
+  nickNext.textContent = 'Next ❤️';
+});
+
+/* ── truths & lies question ── */
+const L_STATEMENTS = [
+  "1. Low rise jeans are the best in your opinion.",
+  "2. You hate Jamaican food.",
+  "3. You Love Large Hoodies.",
+  "4. U Hate Hair accessories"
+];
+const L_LIES = [1, 3]; // statements 2 and 4
+const lieWrap = document.getElementById('lieOpts');
+const lMsg = document.getElementById('lMsg');
+const lNext = document.getElementById('lNext');
+const lSel = new Set();
+const lieBtns = [];
+let lTries = 4, lDone = false;
+L_STATEMENTS.forEach((t, i)=>{
+  const b = document.createElement('button');
+  b.className = 'lie';
+  b.textContent = t;
+  b.addEventListener('click', ()=>{
+    if(lDone) return;
+    b.classList.toggle('on');
+    b.classList.contains('on') ? lSel.add(i) : lSel.delete(i);
+    lNext.disabled = lSel.size === 0;
+  });
+  lieBtns.push(b);
+  lieWrap.appendChild(b);
+});
+lNext.addEventListener('click', ()=>{
+  if(lDone){ go('s2'); startQuiz(); return; }
+  const right = lSel.size === L_LIES.length && L_LIES.every(i=>lSel.has(i));
+  if(right){
+    lDone = true;
+    flashGreen();
+    miniBurst(14);
+    lMsg.textContent = "Correct! You know me so well ❤️";
+    lNext.textContent = 'Next ❤️';
+  } else {
+    lTries--;
+    flashRed();
+    if(lTries <= 0){
+      lDone = true;
+      L_LIES.forEach(i=>lieBtns[i].classList.add('reveal'));
+      lMsg.textContent = "the lies were 2 and 4 😅";
+      lNext.textContent = 'Next ❤️';
+      lNext.disabled = false;
+    } else {
+      lMsg.textContent = 'wrong. ' + lTries + (lTries === 1 ? ' try' : ' tries') + ' left';
+    }
+  }
 });
 
 /* ── quiz ── */
@@ -604,12 +678,15 @@ const qAns  = document.getElementById('qAnswers');
 const qNum  = document.getElementById('qNum');
 const qTaunt= document.getElementById('qTaunt');
 
-function startQuiz(){ qi = 0; score = 0; showQ(); }
+function startQuiz(){
+  if(CONFIG.quiz.length === 0){ go('s3'); return; }
+  qi = 0; score = 0; showQ();
+}
 
 function showQ(){
   const item = CONFIG.quiz[qi];
   missed = false;
-  qNum.textContent = 'question ' + (qi+5) + ' / ' + (CONFIG.quiz.length+4);
+  qNum.textContent = 'question ' + (qi+6) + ' / ' + (CONFIG.quiz.length+5);
   qText.textContent = item.q;
   qTaunt.textContent = '';
   qAns.innerHTML = '';
@@ -685,8 +762,12 @@ heart.addEventListener('click', ()=>{
 
 function setScore(){
   const total = CONFIG.quiz.length;
-  const comment = score === total ? "perfect. as expected." : "close enough… lucky you're cute.";
-  document.getElementById('scoreLine').textContent = 'quiz: ' + score + '/' + total + ' — ' + comment;
+  if(total === 0){
+    document.getElementById('scoreLine').style.display = 'none';
+  } else {
+    const comment = score === total ? "perfect. as expected." : "close enough… lucky you're cute.";
+    document.getElementById('scoreLine').textContent = 'quiz: ' + score + '/' + total + ' — ' + comment;
+  }
   if(chosenSong) document.getElementById('songLine').textContent = '🎵 your song: ' + chosenSong;
   if(nickname) document.getElementById('nickLine').textContent = '💬 your nickname for me: ' + nickname;
 }
