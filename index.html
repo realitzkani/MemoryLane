@@ -177,7 +177,7 @@
   .lie.on{background:var(--red);border-color:#fff}
   .lie.reveal{background:var(--deep);border-color:#fff}
   .lie:focus-visible{outline:3px dashed var(--rose);outline-offset:2px}
-  #lMsg{min-height:1.5em;margin-top:14px;font-weight:800;color:var(--rose)}
+  #lMsg,#tMsg{min-height:1.5em;margin-top:14px;font-weight:800;color:var(--rose)}
 
   /* runaway */
   #play{position:relative;height:210px;margin-top:6px}
@@ -333,6 +333,18 @@
   </div>
 </section>
 
+<!-- PA trip question -->
+<section class="scene" id="sT">
+  <div class="card">
+    <span class="eyebrow">question 7</span>
+    <h1>When I fly to the big PA, what are we doing?</h1>
+    <p>(You can choose multiple.)</p>
+    <div class="lies" id="tOpts"></div>
+    <p id="tMsg"></p>
+    <button class="btn" id="tNext" disabled>Done!</button>
+  </div>
+</section>
+
 <!-- scene 2: quiz -->
 <section class="scene" id="s2">
   <div class="card">
@@ -401,11 +413,15 @@ const CONFIG = {
   message:"no special reason for this. i just love you, and i wanted you to have a little corner of the internet that's only yours.",
   signed:"— me ❤️",
   reasons:[                                  // tap-to-reveal
-    "your laugh",
-    "how you steal my hoodies",
-    "your terrible puns",
-    "the way you say hi",
-    "everything, honestly"
+    "Your Smile",
+    "Your Laugh",
+    "Your Face",
+    "Your Body",
+    "Your Eyes",
+    "Your Hands",
+    "Your Personality",
+    "Your Hair",
+    "Your Smartness"
   ]
 };
 /* ═════════════════════════════════════════ */
@@ -648,7 +664,7 @@ L_STATEMENTS.forEach((t, i)=>{
   lieWrap.appendChild(b);
 });
 lNext.addEventListener('click', ()=>{
-  if(lDone){ go('s2'); startQuiz(); return; }
+  if(lDone){ go('sT'); return; }
   const right = lSel.size === L_LIES.length && L_LIES.every(i=>lSel.has(i));
   if(right){
     lDone = true;
@@ -671,6 +687,54 @@ lNext.addEventListener('click', ()=>{
   }
 });
 
+/* ── PA trip question ── */
+const T_OPTS = [
+  "Spend time at a beach",
+  "Make cookies",
+  "Eat Pizza and watch spiderman",
+  "Make love at a picnic by ourselfs",
+  "Visit and make out own donuts",
+  "Kiss and hug each other and say \"I love you\" in front of each other."
+];
+const tWrap = document.getElementById('tOpts');
+const tMsg = document.getElementById('tMsg');
+const tNext = document.getElementById('tNext');
+const tSel = new Set();
+let tTries = 4, tDone = false;
+T_OPTS.forEach((t, i)=>{
+  const b = document.createElement('button');
+  b.className = 'lie';
+  b.textContent = t;
+  b.addEventListener('click', ()=>{
+    if(tDone) return;
+    b.classList.toggle('on');
+    b.classList.contains('on') ? tSel.add(i) : tSel.delete(i);
+    tNext.disabled = tSel.size === 0;
+  });
+  tWrap.appendChild(b);
+});
+tNext.addEventListener('click', ()=>{
+  if(tDone){ go('s2'); startQuiz(); return; }
+  if(tSel.size === T_OPTS.length){
+    tDone = true;
+    flashGreen();
+    burst();
+    tMsg.textContent = "Correct! We're doing everything ❤️";
+    tNext.textContent = 'Next ❤️';
+  } else {
+    tTries--;
+    flashRed();
+    if(tTries <= 0){
+      tDone = true;
+      tMsg.textContent = "its everything. we're doing all of it ❤️";
+      tNext.textContent = 'Next ❤️';
+      tNext.disabled = false;
+    } else {
+      tMsg.textContent = 'wrong. ' + tTries + (tTries === 1 ? ' try' : ' tries') + ' left';
+    }
+  }
+});
+
 /* ── quiz ── */
 let qi = 0, score = 0, missed = false;
 const qText = document.getElementById('qText');
@@ -686,7 +750,7 @@ function startQuiz(){
 function showQ(){
   const item = CONFIG.quiz[qi];
   missed = false;
-  qNum.textContent = 'question ' + (qi+7) + ' / ' + (CONFIG.quiz.length+6);
+  qNum.textContent = 'question ' + (qi+8) + ' / ' + (CONFIG.quiz.length+7);
   qText.textContent = item.q;
   qTaunt.textContent = '';
   qAns.innerHTML = '';
