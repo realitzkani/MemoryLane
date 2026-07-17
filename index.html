@@ -93,6 +93,26 @@
   @keyframes shake{0%,100%{translate:0}20%{translate:-7px 0}40%{translate:7px 0}60%{translate:-5px 0}80%{translate:5px 0}}
   #qTaunt{min-height:1.5em;margin-top:12px;font-weight:800;color:var(--rose)}
 
+  /* photo question */
+  .card.wide{max-width:580px}
+  .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}
+  .pimg{
+    aspect-ratio:1;background-size:cover;background-position:center;
+    border:3px solid var(--rose);border-radius:14px;cursor:pointer;padding:0;
+    position:relative;transition:transform .1s, border-color .15s, box-shadow .15s;
+  }
+  .pimg.sel{
+    border-color:#fff;
+    box-shadow:0 0 0 3px var(--red), 0 0 18px rgba(225,29,72,.7);
+    transform:scale(.94);
+  }
+  .pimg.sel::after{content:'❤️';position:absolute;top:4px;right:6px;font-size:1.05rem;filter:drop-shadow(0 1px 2px #000)}
+  .pimg:focus-visible{outline:3px dashed var(--rose);outline-offset:2px}
+  #pMsg{min-height:1.5em;margin-top:14px;font-weight:800;color:var(--rose)}
+  #flash{position:fixed;inset:0;background:#ff0022;opacity:0;pointer-events:none;z-index:50}
+  #flash.go{animation:redflash .45s ease-out}
+  @keyframes redflash{0%{opacity:.55}100%{opacity:0}}
+
   /* runaway */
   #play{position:relative;height:210px;margin-top:6px}
   #play .btn{position:absolute}
@@ -145,6 +165,21 @@
   .amb{position:absolute;bottom:-6vh;animation:rise linear forwards}
   @keyframes rise{to{transform:translateY(-115vh) rotate(30deg)}}
 
+  /* black intro screen */
+  #blackout{
+    position:fixed;inset:0;background:#000;z-index:99;
+    display:flex;align-items:center;justify-content:center;
+    transition:opacity 4.5s ease;
+  }
+  #blackout.fade{opacity:0;pointer-events:none}
+  #showBtn{
+    font-family:Arial, Helvetica, sans-serif;font-weight:400;font-size:1rem;
+    color:#fff;background:#000;
+    border:1px solid #fff;border-radius:4px;
+    padding:12px 28px;cursor:pointer;
+  }
+  #showBtn:focus-visible{outline:2px solid #fff;outline-offset:3px}
+
   @media (prefers-reduced-motion: reduce){
     *{animation:none!important;transition:none!important}
     #ambient{display:none}
@@ -153,6 +188,10 @@
 </head>
 <body>
 
+<div id="blackout">
+  <button id="showBtn">Press to show.</button>
+</div>
+
 <div id="ambient"></div>
 
 <!-- scene 1: envelope -->
@@ -160,9 +199,22 @@
   <div class="card">
     <span class="big">❤️</span>
     <h1>Pop quiz for My Love.</h1>
-    <button class="btn" onclick="go('s2'); startQuiz()">Start Quizz!</button>
+    <button class="btn" onclick="go('sP')">Start Quizz!</button>
   </div>
 </section>
+
+<!-- photo question -->
+<section class="scene" id="sP">
+  <div class="card wide">
+    <span class="eyebrow">question 1</span>
+    <h1>For the options below, whats the best looking photo of you.</h1>
+    <p>(You can choose multiple.)</p>
+    <div class="pgrid" id="pGrid"></div>
+    <p id="pMsg"></p>
+    <button class="btn" id="pSubmit">Done!</button>
+  </div>
+</section>
+<div id="flash"></div>
 
 <!-- scene 2: quiz -->
 <section class="scene" id="s2">
@@ -244,10 +296,58 @@ const CONFIG = {
 document.getElementById('msg').textContent = CONFIG.message;
 document.getElementById('signed').textContent = CONFIG.signed;
 
+document.getElementById('showBtn').addEventListener('click', ()=>{
+  const b = document.getElementById('blackout');
+  b.classList.add('fade');
+  setTimeout(()=>b.remove(), 4600);
+});
+
 function go(id){
   document.querySelectorAll('.scene').forEach(s=>s.classList.remove('on'));
   document.getElementById(id).classList.add('on');
   window.scrollTo(0,0);
+}
+
+/* ── photo question ── */
+const PHOTOS = 16;
+const pGrid = document.getElementById('pGrid');
+const pMsg = document.getElementById('pMsg');
+const pSel = new Set();
+let pTries = 4, pDone = false;
+for(let i=1;i<=PHOTOS;i++){
+  const b = document.createElement('button');
+  b.className = 'pimg';
+  b.style.backgroundImage = "url('photos/photo" + String(i).padStart(2,'0') + ".jpg')";
+  b.setAttribute('aria-label','photo ' + i);
+  b.addEventListener('click', ()=>{
+    if(pDone) return;
+    b.classList.toggle('sel');
+    b.classList.contains('sel') ? pSel.add(i) : pSel.delete(i);
+  });
+  pGrid.appendChild(b);
+}
+document.getElementById('pSubmit').addEventListener('click', ()=>{
+  if(pDone) return;
+  if(pSel.size === PHOTOS){
+    pDone = true;
+    pMsg.textContent = "Correct! Theyre all your best looking cause your always beautiful every time.";
+    burst();
+    setTimeout(()=>{ go('s2'); startQuiz(); }, 2800);
+  } else {
+    pTries--;
+    flashRed();
+    if(pTries <= 0){
+      pDone = true;
+      pMsg.textContent = "They're all the best looking cause ur always beautiful.";
+      setTimeout(()=>{ go('s2'); startQuiz(); }, 3200);
+    } else {
+      pMsg.textContent = 'wrong. ' + pTries + (pTries === 1 ? ' try' : ' tries') + ' left';
+    }
+  }
+});
+function flashRed(){
+  const f = document.getElementById('flash');
+  f.classList.remove('go'); void f.offsetWidth; f.classList.add('go');
 }
 
 /* ── quiz ── */
@@ -262,7 +362,7 @@ function startQuiz(){ qi = 0; score = 0; showQ(); }
 function showQ(){
   const item = CONFIG.quiz[qi];
   missed = false;
-  qNum.textContent = 'question ' + (qi+1) + ' / ' + CONFIG.quiz.length;
+  qNum.textContent = 'question ' + (qi+2) + ' / ' + (CONFIG.quiz.length+1);
   qText.textContent = item.q;
   qTaunt.textContent = '';
   qAns.innerHTML = '';
