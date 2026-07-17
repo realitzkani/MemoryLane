@@ -125,6 +125,7 @@
   }
   #songInput:focus{border-color:#fff}
   #songList,#songPick{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+  #songList{max-height:300px;overflow-y:auto}
   .songitem{
     display:flex;gap:10px;align-items:center;text-align:left;
     font-family:'Nunito',sans-serif;color:var(--cream);
@@ -137,6 +138,15 @@
   .songitem.picked{background:var(--red);border-color:#fff;cursor:default}
   .songitem:focus-visible{outline:3px dashed var(--rose);outline-offset:2px}
   .btn:disabled{opacity:.45;cursor:not-allowed}
+
+  /* music volume */
+  #volWrap{
+    position:fixed;bottom:14px;right:14px;z-index:60;
+    display:none;align-items:center;gap:8px;
+    background:var(--bg1);border:2.5px solid var(--rose);border-radius:999px;
+    padding:8px 14px;box-shadow:0 0 20px rgba(225,29,72,.3);
+  }
+  #volSlider{width:110px;accent-color:var(--red)}
 
   /* runaway */
   #play{position:relative;height:210px;margin-top:6px}
@@ -248,7 +258,7 @@
     <h1>Whats a song thats reminds you of me.</h1>
     <p>(Make sure its the song with the artist.)</p>
     <div class="songbox">
-      <input id="songInput" type="text" placeholder="start typing a song..." autocomplete="off">
+      <input id="songInput" type="text" placeholder="type song + artist..." autocomplete="off">
       <div id="songList"></div>
     </div>
     <div id="songPick"></div>
@@ -306,6 +316,12 @@
 </section>
 
 <div id="fx"></div>
+
+<audio id="songAudio" loop></audio>
+<div id="volWrap">
+  <span>🎵</span>
+  <input type="range" id="volSlider" min="0" max="100" value="15" aria-label="music volume">
+</div>
 
 <script>
 /* ═══════════════ EDIT THIS ═══════════════ */
@@ -417,7 +433,7 @@ function musicSearch(term, cb){
   const cbName = 'itcb' + Date.now();
   const s = document.createElement('script');
   window[cbName] = data => { cb((data && data.results) || []); delete window[cbName]; s.remove(); };
-  s.src = 'https://itunes.apple.com/search?media=music&entity=song&limit=6&callback=' + cbName + '&term=' + encodeURIComponent(term);
+  s.src = 'https://itunes.apple.com/search?media=music&entity=song&limit=12&callback=' + cbName + '&term=' + encodeURIComponent(term);
   s.onerror = () => { cb([]); delete window[cbName]; s.remove(); };
   document.body.appendChild(s);
 }
@@ -446,10 +462,21 @@ function renderSongs(results){
       songInput.value = '';
       flashGreen();
       songNext.disabled = false;
+      if(r.previewUrl){
+        const audio = document.getElementById('songAudio');
+        audio.src = r.previewUrl;
+        audio.volume = volSlider.value / 100;
+        audio.play().catch(()=>{});
+        document.getElementById('volWrap').style.display = 'flex';
+      }
     });
     songList.appendChild(b);
   });
 }
+const volSlider = document.getElementById('volSlider');
+volSlider.addEventListener('input', ()=>{
+  document.getElementById('songAudio').volume = volSlider.value / 100;
+});
 songNext.addEventListener('click', ()=>{ if(chosenSong){ go('s2'); startQuiz(); } });
 
 /* ── quiz ── */
