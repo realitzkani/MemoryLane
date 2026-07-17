@@ -321,9 +321,15 @@ for(let i=1;i<=PHOTOS;i++){
   const b = document.createElement('button');
   b.className = 'pimg';
   const img = document.createElement('img');
-  img.src = 'photos/photo' + n + '.jpg';
+  const tries = ['photos/', 'Photos/', ''];
+  let ti = 0;
+  img.src = tries[0] + 'photo' + n + '.jpg';
   img.alt = 'photo ' + i;
-  img.onerror = ()=>{ img.onerror = null; img.src = 'photo' + n + '.jpg'; };
+  img.onerror = ()=>{
+    ti++;
+    if(ti < tries.length) img.src = tries[ti] + 'photo' + n + '.jpg';
+    else img.onerror = null;
+  };
   b.appendChild(img);
   b.addEventListener('click', ()=>{
     if(pDone) return;
