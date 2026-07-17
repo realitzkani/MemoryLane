@@ -492,17 +492,25 @@ document.getElementById('s5').addEventListener('pointerdown', e=>{
 const ambient = document.getElementById('ambient');
 if(!matchMedia('(prefers-reduced-motion: reduce)').matches){
   setInterval(()=>{
-    if(ambient.childElementCount > 22) return;
-    const a = document.createElement('span');
+    if(ambient.childElementCount > 24) return;
+    let a;
+    if(Math.random() < 0.35){
+      a = document.createElement('img');
+      a.src = 'flower.png';
+      a.alt = '';
+      a.style.width = (28 + Math.random()*34) + 'px';
+    } else {
+      a = document.createElement('span');
+      a.textContent = '❤️';
+      a.style.fontSize = (12 + Math.random()*20) + 'px';
+    }
     a.className = 'amb';
-    a.textContent = '❤️';
     a.style.left = Math.random()*100 + 'vw';
-    a.style.fontSize = (12 + Math.random()*20) + 'px';
     a.style.opacity = (.08 + Math.random()*.15).toFixed(2);
-    a.style.animationDuration = (16 + Math.random()*8) + 's';
+    a.style.animationDuration = (26 + Math.random()*12) + 's';
     ambient.appendChild(a);
-    setTimeout(()=>a.remove(), 25000);
-  }, 900);
+    setTimeout(()=>a.remove(), 39000);
+  }, 1100);
 }
 </script>
 </body>
