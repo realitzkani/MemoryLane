@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>for you ❤️</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>❤️</text></svg>">
+<title>test website</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📄</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Shrikhand&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
@@ -139,6 +139,22 @@
   .songitem:focus-visible{outline:3px dashed var(--rose);outline-offset:2px}
   .btn:disabled{opacity:.45;cursor:not-allowed}
 
+  /* secret heart */
+  #secretHeart{
+    position:fixed;bottom:12px;left:12px;z-index:55;
+    background:none;border:none;font-size:14px;
+    opacity:.18;cursor:pointer;padding:6px;
+    transition:opacity .2s;
+  }
+  #secretHeart:hover{opacity:.45}
+  #secretPop{
+    position:fixed;inset:0;z-index:70;display:none;
+    align-items:center;justify-content:center;
+    background:rgba(0,0,0,.6);padding:24px;
+  }
+  #secretPop.on{display:flex}
+  .secretcard{max-width:380px}
+
   /* music volume */
   #volWrap{
     position:fixed;bottom:14px;right:14px;z-index:60;
@@ -177,7 +193,7 @@
   .lie.on{background:var(--red);border-color:#fff}
   .lie.reveal{background:var(--deep);border-color:#fff}
   .lie:focus-visible{outline:3px dashed var(--rose);outline-offset:2px}
-  #lMsg,#tMsg{min-height:1.5em;margin-top:14px;font-weight:800;color:var(--rose)}
+  #lMsg,#tMsg,#mMsg{min-height:1.5em;margin-top:14px;font-weight:800;color:var(--rose)}
 
   /* runaway */
   #play{position:relative;height:210px;margin-top:6px}
@@ -345,6 +361,18 @@
   </div>
 </section>
 
+<!-- photo-looking question -->
+<section class="scene" id="sM">
+  <div class="card">
+    <span class="eyebrow">question 8</span>
+    <h1>How much times do u think I look at ur EVERY photo?</h1>
+    <p>(You can choose multiple.)</p>
+    <div class="uopts" id="mOpts"></div>
+    <p id="mMsg"></p>
+    <button class="btn" id="mNext" disabled>Done!</button>
+  </div>
+</section>
+
 <!-- scene 2: quiz -->
 <section class="scene" id="s2">
   <div class="card">
@@ -396,6 +424,15 @@
 </section>
 
 <div id="fx"></div>
+
+<button id="secretHeart" aria-label="secret">❤️</button>
+<div id="secretPop">
+  <div class="card secretcard">
+    <span class="big">❤️</span>
+    <h1>Your so perfect I love you so much!</h1>
+    <button class="btn" id="secretClose">❤️</button>
+  </div>
+</div>
 
 <audio id="songAudio"></audio>
 <div id="volWrap">
@@ -714,7 +751,7 @@ T_OPTS.forEach((t, i)=>{
   tWrap.appendChild(b);
 });
 tNext.addEventListener('click', ()=>{
-  if(tDone){ go('s2'); startQuiz(); return; }
+  if(tDone){ go('sM'); return; }
   if(tSel.size === T_OPTS.length){
     tDone = true;
     flashGreen();
@@ -735,6 +772,57 @@ tNext.addEventListener('click', ()=>{
   }
 });
 
+/* ── secret heart ── */
+const secretPop = document.getElementById('secretPop');
+document.getElementById('secretHeart').addEventListener('click', ()=>{
+  miniBurst(14);
+  secretPop.classList.add('on');
+});
+document.getElementById('secretClose').addEventListener('click', ()=> secretPop.classList.remove('on'));
+secretPop.addEventListener('click', e=>{ if(e.target === secretPop) secretPop.classList.remove('on'); });
+
+/* ── photo-looking question ── */
+const M_OPTS = ["once a time","every hour","each month","each week","each second","each minute"];
+const M_ANSWER = "Its everything cause no matter the time I always miss you and love looking at my beautiful!";
+const mWrap = document.getElementById('mOpts');
+const mMsg = document.getElementById('mMsg');
+const mNext = document.getElementById('mNext');
+const mSel = new Set();
+let mTries = 4, mDone = false;
+M_OPTS.forEach((t, i)=>{
+  const b = document.createElement('button');
+  b.className = 'uopt';
+  b.textContent = t;
+  b.addEventListener('click', ()=>{
+    if(mDone) return;
+    b.classList.toggle('on');
+    b.classList.contains('on') ? mSel.add(i) : mSel.delete(i);
+    mNext.disabled = mSel.size === 0;
+  });
+  mWrap.appendChild(b);
+});
+mNext.addEventListener('click', ()=>{
+  if(mDone){ go('s2'); startQuiz(); return; }
+  if(mSel.size === M_OPTS.length){
+    mDone = true;
+    flashGreen();
+    burst();
+    mMsg.textContent = "Correct! " + M_ANSWER;
+    mNext.textContent = 'Next ❤️';
+  } else {
+    mTries--;
+    flashRed();
+    if(mTries <= 0){
+      mDone = true;
+      mMsg.textContent = M_ANSWER;
+      mNext.textContent = 'Next ❤️';
+      mNext.disabled = false;
+    } else {
+      mMsg.textContent = 'wrong. ' + mTries + (mTries === 1 ? ' try' : ' tries') + ' left';
+    }
+  }
+});
+
 /* ── quiz ── */
 let qi = 0, score = 0, missed = false;
 const qText = document.getElementById('qText');
@@ -750,7 +838,7 @@ function startQuiz(){
 function showQ(){
   const item = CONFIG.quiz[qi];
   missed = false;
-  qNum.textContent = 'question ' + (qi+8) + ' / ' + (CONFIG.quiz.length+7);
+  qNum.textContent = 'question ' + (qi+9) + ' / ' + (CONFIG.quiz.length+8);
   qText.textContent = item.q;
   qTaunt.textContent = '';
   qAns.innerHTML = '';
@@ -789,8 +877,18 @@ let dodges = 0;
 function dodge(){
   const area = document.getElementById('play').getBoundingClientRect();
   const b = noBtn.getBoundingClientRect();
-  noBtn.style.left = Math.random()*(area.width - b.width) + 'px';
-  noBtn.style.top  = Math.random()*(area.height - b.height) + 'px';
+  const y = document.getElementById('yesBtn').getBoundingClientRect();
+  const pad = 16;
+  const yx1 = y.left - area.left - pad, yy1 = y.top - area.top - pad;
+  const yx2 = yx1 + y.width + pad*2, yy2 = yy1 + y.height + pad*2;
+  let nx, ny, attempts = 0;
+  do {
+    nx = Math.random() * (area.width - b.width);
+    ny = Math.random() * (area.height - b.height);
+    attempts++;
+  } while(attempts < 50 && nx < yx2 && nx + b.width > yx1 && ny < yy2 && ny + b.height > yy1);
+  noBtn.style.left = nx + 'px';
+  noBtn.style.top  = ny + 'px';
   noBtn.style.right = 'auto';
   dodges++;
   noBtn.textContent = taunts[Math.min(dodges, taunts.length-1)];
