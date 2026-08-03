@@ -94,6 +94,13 @@
   .placeholder .play::after{content:"";width:0;height:0;margin-left:3px;border-left:12px solid var(--paper-faint);border-top:8px solid transparent;border-bottom:8px solid transparent}
   .placeholder .lbl{font-family:var(--mono);font-size:11px;letter-spacing:.32em;text-transform:uppercase}
 
+  /* click-to-play button */
+  .playbtn{display:flex;flex-direction:column;align-items:center;gap:14px;color:var(--paper-dim);transition:color .3s ease}
+  .frame:hover .playbtn{color:var(--paper)}
+  .playbtn .tri{width:60px;height:60px;border:1px solid currentColor;border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative}
+  .playbtn .tri::after{content:"";position:absolute;left:52%;top:50%;transform:translate(-50%,-50%);width:0;height:0;border-left:16px solid currentColor;border-top:10px solid transparent;border-bottom:10px solid transparent}
+  .playbtn .plabel{font-family:var(--mono);font-size:11px;letter-spacing:.3em;text-transform:uppercase}
+
   .quote{margin-top:26px;padding:0 6px;cursor:pointer}
   .quote blockquote{font-family:var(--serif);font-style:italic;font-weight:300;font-size:clamp(20px,3.2vw,27px);line-height:1.4;color:var(--paper)}
   .quote.empty blockquote{color:var(--paper-faint)}
@@ -207,10 +214,9 @@
   document.body.classList.toggle("gray-photos", GRAYSCALE_PHOTOS);
 
   function videoMarkup(v,i){
-    if(v && v.type==="youtube" && v.src)
-      return `<div class="frame"><iframe src="https://www.youtube.com/embed/${v.src}" title="Reel ${pad(i)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe></div>`;
-    if(v && v.type==="file" && v.src)
-      return `<div class="frame"><video src="${v.src}" controls playsinline preload="metadata"></video></div>`;
+    if(v && (v.type==="youtube"||v.type==="file") && v.src)
+      return `<div class="frame" data-type="${v.type}" data-src="${v.src}">
+        <div class="playbtn"><span class="tri"></span><span class="plabel">Play clip</span></div></div>`;
     return `<div class="frame empty"><div class="placeholder"><div class="play"></div><div class="lbl">Awaiting Reel ${pad(i)}</div></div></div>`;
   }
   function quoteMarkup(m){
@@ -246,13 +252,13 @@
     const imgFile  = m.image || (m.name ? m.name + ".png" : "");
     const songFile = m.song  || (m.name ? m.name + ".mp3" : "");
 
-    // background image
-    if(imgFile) sec.querySelector(".bg").style.backgroundImage = `url("${imgFile}")`;
+    // background image — stored, loaded lazily when the memory becomes active
+    if(imgFile) sec.dataset.bg = imgFile;
 
-    // audio
+    // audio (preload none — not fetched until it plays)
     if(songFile){
       const a = new Audio(songFile);
-      a.loop = true; a.volume = MUSIC_VOLUME; a.preload = "auto";
+      a.loop = true; a.volume = MUSIC_VOLUME; a.preload = "none";
       sec._audio = a;
     }
     host.appendChild(sec);
@@ -316,13 +322,50 @@
   let active = null;
   const hint = document.getElementById("soundhint");
 
+  // build a video ONLY when tapped; keep at most one alive at a time
+  function mountVideo(frame){
+    if(!frame || frame.dataset.mounted || !frame.dataset.src) return;
+    frame.dataset.mounted = "1";
+    const type = frame.dataset.type, src = frame.dataset.src;
+    frame.innerHTML = "";
+    if(type === "youtube"){
+      const ifr = document.createElement("iframe");
+      ifr.src = `https://www.youtube.com/embed/${src}?autoplay=1&rel=0&playsinline=1`;
+      ifr.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+      ifr.allowFullscreen = true;
+      frame.appendChild(ifr);
+    } else {
+      const v = document.createElement("video");
+      v.src = src; v.controls = true; v.playsInline = true; v.autoplay = true; v.preload = "auto";
+      frame.appendChild(v);
+      v.play().catch(()=>{});
+    }
+  }
+  function unmountVideo(frame){
+    if(!frame || !frame.dataset.mounted) return;
+    const v = frame.querySelector("video");
+    if(v){ try{ v.pause(); v.removeAttribute("src"); v.load(); }catch(e){} }
+    const ifr = frame.querySelector("iframe");
+    if(ifr) ifr.src = "about:blank";
+    frame.innerHTML = `<div class="playbtn"><span class="tri"></span><span class="plabel">Play clip</span></div>`;
+    delete frame.dataset.mounted;
+  }
+
   function activate(sec){
     if(active === sec) return;
-    // stop previous song
-    if(active && active._audio){ active._audio.pause(); active._audio.currentTime = 0; }
+    // tear down the previous memory so only one memory's media is ever in memory
+    if(active){
+      if(active._audio){ active._audio.pause(); active._audio.currentTime = 0; }
+      unmountVideo(active.querySelector(".frame"));
+    }
     document.querySelectorAll(".memory.active").forEach(s=>{ if(s!==sec) s.classList.remove("active"); });
     active = sec;
     sec.classList.add("active");
+    // load this memory's background image once, on demand
+    if(sec.dataset.bg && !sec._bgSet){
+      sec.querySelector(".bg").style.backgroundImage = `url("${sec.dataset.bg}")`;
+      sec._bgSet = true;
+    }
     if(audioReady && sec._audio){
       sec._audio.play().then(()=>showHint()).catch(()=>{});
     }
@@ -344,13 +387,13 @@
   },{ rootMargin:"-45% 0px -45% 0px", threshold:0 });
   document.querySelectorAll(".memory").forEach(s=>io.observe(s));
 
-  // clicking the video or quote pauses that memory's music
+  // tap the video frame -> pause music and build/play the clip (only then does it load)
   document.querySelectorAll(".memory").forEach(sec=>{
-    const stop = ()=>{ if(sec._audio) sec._audio.pause(); hint.classList.remove("show"); };
-    sec.querySelector(".frame").addEventListener("click", stop);
-    sec.querySelector(".quote").addEventListener("click", stop);
-    const vid = sec.querySelector("video");
-    if(vid) vid.addEventListener("play", stop);        // file video started
+    const frame = sec.querySelector(".frame");
+    const quote = sec.querySelector(".quote");
+    const pauseMusic = ()=>{ if(sec._audio) sec._audio.pause(); hint.classList.remove("show"); };
+    if(frame) frame.addEventListener("click", ()=>{ pauseMusic(); if(frame.dataset.src) mountVideo(frame); });
+    if(quote) quote.addEventListener("click", pauseMusic);
   });
   // YouTube (cross-origin) can't report clicks, but taking focus fires window blur
   window.addEventListener("blur", ()=>{ if(document.activeElement && document.activeElement.tagName==="IFRAME") pauseActive(); });
