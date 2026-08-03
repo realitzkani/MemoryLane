@@ -41,6 +41,7 @@
   }
   @keyframes grain{0%{transform:translate(0,0)}20%{transform:translate(-3%,2%)}40%{transform:translate(2%,-3%)}60%{transform:translate(-2%,-2%)}80%{transform:translate(3%,2%)}100%{transform:translate(0,0)}}
   .vignette{position:fixed;inset:0;pointer-events:none;z-index:29;background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.55) 100%)}
+  #snow{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:28}
 
   /* ---------- screens ---------- */
   .screen{
@@ -134,6 +135,7 @@
 <body class="gray-photos">
   <div class="grain"></div>
   <div class="vignette"></div>
+  <canvas id="snow"></canvas>
   <div class="soundhint" id="soundhint">♪ music playing — tap the video or quote to pause</div>
 
   <!-- ===================== TITLE CARD ===================== -->
@@ -397,6 +399,47 @@
   });
   // YouTube (cross-origin) can't report clicks, but taking focus fires window blur
   window.addEventListener("blur", ()=>{ if(document.activeElement && document.activeElement.tagName==="IFRAME") pauseActive(); });
+
+  /* ---------------- calm snow ---------------- */
+  (function(){
+    const c = document.getElementById("snow");
+    if(!c) return;
+    if(matchMedia("(prefers-reduced-motion: reduce)").matches) return;  // respect reduced motion
+    const ctx = c.getContext("2d");
+    let w, h, flakes;
+    const mk = anywhere => ({
+      x: Math.random()*w,
+      y: anywhere ? Math.random()*h : -5,
+      r: Math.random()*2 + 0.7,            // small
+      sp: Math.random()*0.55 + 0.22,       // slow fall
+      dr: Math.random()*0.5 - 0.25,        // gentle drift
+      sw: Math.random()*Math.PI*2,
+      swsp: Math.random()*0.01 + 0.004,    // slow sway
+      a: Math.random()*0.4 + 0.22          // soft opacity
+    });
+    function size(){
+      w = c.width = innerWidth; h = c.height = innerHeight;
+      const n = Math.min(85, Math.max(30, Math.round(w*h/27000)));
+      flakes = Array.from({length:n}, ()=>mk(true));
+    }
+    function tick(){
+      requestAnimationFrame(tick);
+      if(document.hidden) return;
+      ctx.clearRect(0,0,w,h);
+      for(const f of flakes){
+        f.y += f.sp; f.sw += f.swsp; f.x += f.dr + Math.sin(f.sw)*0.3;
+        if(f.y > h+5){ f.y = -5; f.x = Math.random()*w; }
+        if(f.x > w+5) f.x = -5; else if(f.x < -5) f.x = w+5;
+        ctx.beginPath();
+        ctx.arc(f.x, f.y, f.r, 0, Math.PI*2);
+        ctx.fillStyle = "rgba(255,255,255," + f.a + ")";
+        ctx.fill();
+      }
+    }
+    size();
+    addEventListener("resize", size);
+    requestAnimationFrame(tick);
+  })();
 </script>
 </body>
 </html>
