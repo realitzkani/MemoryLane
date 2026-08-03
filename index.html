@@ -152,30 +152,33 @@
 <script>
   /* =========================================================
      FILL THIS IN — one entry per memory (10 total).
-       quote   : the words
-       caption : who said it / a date / a place   (optional)
-       image   : "photo1.jpg"   background that fades in
-       song    : "song1.mp3"    plays low; pauses on click
-       video   : { type:"youtube", src:"VIDEO_ID" }   (just the id)
-                 { type:"file",    src:"clip1.mp4"  }
-       Leave a field "" to keep its placeholder.
 
-     Put all your .jpg / .mp3 / .mp4 files in the SAME folder
-     as this index.html (the repo root) and just use the filename.
+       name  : the base filename (no extension). This ONE name
+               loads both the background and the song:
+                  name + ".png"  -> background that fades in
+                  name + ".mp3"  -> song that plays low, pauses on click
+       quote   : the words                      (add later)
+       caption : who said it / a date / place    (optional)
+       video   : { type:"youtube", src:"VIDEO_ID" }   (just the id)
+                 { type:"file",    src:"clip.mp4"  }   (add later)
+
+     Put every .png / .mp3 / .mp4 in the SAME folder as this
+     index.html (your repo root). Match the .mp3 name to the .png
+     name exactly (including capitals and any trailing "_").
      ========================================================= */
-  const GRAYSCALE_PHOTOS = true;   // set to false for full-color photos
+  const GRAYSCALE_PHOTOS = true;   // set to false for full-color backgrounds
 
   const memories = [
-    { quote:"", caption:"", image:"", song:"", video:{ type:"", src:"" } }, // 01
-    { quote:"", caption:"", image:"", song:"", video:{ type:"", src:"" } }, // 02
-    { quote:"", caption:"", image:"", song:"", video:{ type:"", src:"" } }, // 03
-    { quote:"", caption:"", image:"", song:"", video:{ type:"", src:"" } }, // 04
-    { quote:"", caption:"", image:"", song:"", video:{ type:"", src:"" } }, // 05
-    { quote:"", caption:"", image:"", song:"", video:{ type:"", src:"" } }, // 06
-    { quote:"", caption:"", image:"", song:"", video:{ type:"", src:"" } }, // 07
-    { quote:"", caption:"", image:"", song:"", video:{ type:"", src:"" } }, // 08
-    { quote:"", caption:"", image:"", song:"", video:{ type:"", src:"" } }, // 09
-    { quote:"", caption:"", image:"", song:"", video:{ type:"", src:"" } }, // 10
+    { name:"a_qui_de_droit_",      quote:"", caption:"", video:{ type:"", src:"" } }, // 01
+    { name:"Breathe",              quote:"", caption:"", video:{ type:"", src:"" } }, // 02
+    { name:"buddy_buddy",          quote:"", caption:"", video:{ type:"", src:"" } }, // 03
+    { name:"choppa_melodies",      quote:"", caption:"", video:{ type:"", src:"" } }, // 04
+    { name:"Everyday",             quote:"", caption:"", video:{ type:"", src:"" } }, // 05
+    { name:"Heavent_Sent",         quote:"", caption:"", video:{ type:"", src:"" } }, // 06
+    { name:"Let_s_Lose_Our_Minds", quote:"", caption:"", video:{ type:"", src:"" } }, // 07
+    { name:"Mi_Amor",              quote:"", caption:"", video:{ type:"", src:"" } }, // 08
+    { name:"The_World_Is_Yours",   quote:"", caption:"", video:{ type:"", src:"" } }, // 09
+    { name:"Up_Off_1942",          quote:"", caption:"", video:{ type:"", src:"" } }, // 10
   ];
 
   const MUSIC_VOLUME = 0.12;
@@ -216,12 +219,16 @@
         <button class="continue">Continue<span class="arrow"></span></button>
       </div>`;
 
+    // derive files from the base name (m.image / m.song still override if set)
+    const imgFile  = m.image || (m.name ? m.name + ".png" : "");
+    const songFile = m.song  || (m.name ? m.name + ".mp3" : "");
+
     // background image
-    if(m.image) sec.querySelector(".bg").style.backgroundImage = `url("${m.image}")`;
+    if(imgFile) sec.querySelector(".bg").style.backgroundImage = `url("${imgFile}")`;
 
     // audio
-    if(m.song){
-      const a = new Audio(m.song);
+    if(songFile){
+      const a = new Audio(songFile);
       a.loop = true; a.volume = MUSIC_VOLUME; a.preload = "auto";
       sec._audio = a;
     }
