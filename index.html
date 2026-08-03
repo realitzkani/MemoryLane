@@ -113,6 +113,7 @@
   /* ---------- end card ---------- */
   .end .fin{font-family:var(--serif);font-style:italic;font-weight:300;font-size:clamp(40px,9vw,84px)}
   .end .sig{margin-top:22px;font-family:var(--mono);font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--paper-faint)}
+  .end .sig.by{margin-top:8px;color:var(--paper-dim)}
 
   /* sound hint */
   .soundhint{position:fixed;bottom:18px;right:20px;z-index:31;font-family:var(--mono);font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--paper-faint);opacity:0;transition:opacity .6s ease;pointer-events:none}
@@ -123,7 +124,7 @@
   @media (max-width:560px){.reel-num{font-size:32px}.perf{display:none}.frame-outer{padding:0}}
 </style>
 </head>
-<body class="locked gray-photos">
+<body class="gray-photos">
   <div class="grain"></div>
   <div class="vignette"></div>
   <div class="soundhint" id="soundhint">♪ music playing — tap the video or quote to pause</div>
@@ -142,9 +143,9 @@
   <!-- ===================== END CARD ===================== -->
   <section class="screen end" id="end">
     <div class="wrap">
-      <p class="eyebrow" style="margin-bottom:22px">Roll credits</p>
       <p class="fin">Fin.</p>
-      <p class="sig">Made for you</p>
+      <p class="sig">By yours</p>
+      <p class="sig by">— Husband, Sekani</p>
     </div>
   </section>
 
@@ -206,10 +207,6 @@
       <div class="bg"></div>
       <div class="scrim"></div>
       <div class="wrap">
-        <div class="reel-head">
-          <div class="reel-num">${pad(i)}</div>
-          <div class="reel-meta"><b>Reel ${pad(i)}</b>of ten</div>
-        </div>
         <div class="frame-outer">
           <div class="perf left"><i></i><i></i><i></i><i></i><i></i><i></i></div>
           <div class="perf right"><i></i><i></i><i></i><i></i><i></i><i></i></div>
@@ -235,28 +232,35 @@
   const screens = [document.getElementById("hero"),
                    ...document.querySelectorAll(".memory"),
                    document.getElementById("end")];
-  let step = 0;
-  let unlocked = false;
   let audioReady = false;
+  let furthest = 0;   // highest screen index she's allowed to reach
+
+  const maxScroll = () => screens[furthest].offsetTop;   // can scroll up freely, not past this
 
   function goTo(n){
-    step = Math.max(0, Math.min(screens.length-1, n));
-    screens[step].scrollIntoView({behavior:"smooth"});
-    if(step === screens.length-1) releaseScroll(); // reached the end card
-  }
-  function releaseScroll(){
-    if(unlocked) return;
-    unlocked = true;
-    document.body.classList.remove("locked");
+    n = Math.max(0, Math.min(screens.length-1, n));
+    furthest = Math.max(furthest, n);
+    screens[n].scrollIntoView({behavior:"smooth"});
   }
 
-  // block manual scrolling until the walk is done
-  function block(e){ if(!unlocked) e.preventDefault(); }
-  window.addEventListener("wheel", block, {passive:false});
-  window.addEventListener("touchmove", block, {passive:false});
+  // allow scrolling UP, but block going forward past the furthest unlocked screen
+  window.addEventListener("wheel", e=>{
+    if(e.deltaY > 0 && window.scrollY >= maxScroll() - 1) e.preventDefault();
+  }, {passive:false});
+  let touchY = 0;
+  window.addEventListener("touchstart", e=>{ touchY = e.touches[0].clientY; }, {passive:true});
+  window.addEventListener("touchmove", e=>{
+    const goingDown = e.touches[0].clientY < touchY;   // finger up = scrolling down
+    if(goingDown && window.scrollY >= maxScroll() - 1) e.preventDefault();
+  }, {passive:false});
   window.addEventListener("keydown", e=>{
-    if(!unlocked && [" ","PageDown","PageUp","ArrowDown","ArrowUp","Home","End"].includes(e.key)) e.preventDefault();
+    const fwd = [" ","PageDown","ArrowDown","End"].includes(e.key);
+    if(fwd && window.scrollY >= maxScroll() - 1) e.preventDefault();
   });
+  // backstop: never let the page rest past the boundary
+  window.addEventListener("scroll", ()=>{
+    if(window.scrollY > maxScroll() + 1) window.scrollTo(0, maxScroll());
+  }, {passive:true});
 
   // begin
   document.getElementById("beginBtn").addEventListener("click", ()=>{
@@ -267,9 +271,12 @@
     goTo(1);
   });
 
-  // continue buttons
+  // continue buttons — advance to the screen after this memory
   document.querySelectorAll(".continue").forEach(btn=>{
-    btn.addEventListener("click", ()=>goTo(step+1));
+    btn.addEventListener("click", ()=>{
+      const sec = btn.closest(".memory");
+      goTo(screens.indexOf(sec) + 1);
+    });
   });
 
   /* ---------------- activate memory (bg fade + music) ---------------- */
