@@ -10,7 +10,6 @@
 <style>
   :root{
     --ink:#080808;
-    --ink-2:#0f0f0f;
     --paper:#ecebe6;
     --paper-dim:rgba(236,235,230,.55);
     --paper-faint:rgba(236,235,230,.30);
@@ -23,281 +22,173 @@
 
   *{box-sizing:border-box;margin:0;padding:0}
 
-  html{scroll-behavior:smooth}
-
+  html,body{background:var(--ink);color:var(--paper)}
   body{
-    background:var(--ink);
-    color:var(--paper);
     font-family:var(--serif);
     -webkit-font-smoothing:antialiased;
     overflow-x:hidden;
     line-height:1.5;
   }
+  /* while the guided walk is on, hide the scrollbar */
+  body.locked{overflow-y:hidden}
 
-  /* ---------- film grain + vignette overlays ---------- */
+  /* ---------- film grain + vignette ---------- */
   .grain{
-    position:fixed;
-    inset:-50%;
-    width:200%;
-    height:200%;
-    pointer-events:none;
-    z-index:9;
-    opacity:.05;
+    position:fixed;inset:-50%;width:200%;height:200%;
+    pointer-events:none;z-index:30;opacity:.05;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
     animation:grain 6s steps(6) infinite;
   }
-  @keyframes grain{
-    0%{transform:translate(0,0)}20%{transform:translate(-3%,2%)}
-    40%{transform:translate(2%,-3%)}60%{transform:translate(-2%,-2%)}
-    80%{transform:translate(3%,2%)}100%{transform:translate(0,0)}
-  }
-  .vignette{
-    position:fixed;inset:0;pointer-events:none;z-index:8;
-    background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.55) 100%);
-  }
+  @keyframes grain{0%{transform:translate(0,0)}20%{transform:translate(-3%,2%)}40%{transform:translate(2%,-3%)}60%{transform:translate(-2%,-2%)}80%{transform:translate(3%,2%)}100%{transform:translate(0,0)}}
+  .vignette{position:fixed;inset:0;pointer-events:none;z-index:29;background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.55) 100%)}
 
-  /* ---------- shared wrap ---------- */
-  .wrap{max-width:760px;margin:0 auto;padding:0 24px}
-
-  .eyebrow{
-    font-family:var(--mono);
-    font-size:12px;
-    letter-spacing:.42em;
-    text-transform:uppercase;
-    color:var(--paper-faint);
-  }
-
-  /* ---------- hero / title card ---------- */
-  .hero{
-    min-height:100vh;
-    display:flex;flex-direction:column;
-    align-items:center;justify-content:center;
-    text-align:center;
+  /* ---------- screens ---------- */
+  .screen{
     position:relative;
-    padding:80px 24px;
-  }
-  .hero .card-rule{
-    width:1px;height:52px;background:var(--line);margin-bottom:26px;
-  }
-  .hero .eyebrow{margin-bottom:30px}
-  .hero h1{
-    font-weight:340;
-    font-size:clamp(52px,13vw,128px);
-    line-height:.92;
-    letter-spacing:-.01em;
-    font-optical-sizing:auto;
-  }
-  .hero h1 .name{
-    display:block;
-    font-style:italic;
-    font-weight:500;
-  }
-  .hero .dedication{
-    font-family:var(--mono);
-    font-size:12.5px;
-    letter-spacing:.22em;
-    text-transform:uppercase;
-    color:var(--paper-dim);
-    margin-top:38px;
-  }
-  .hero .scroll-cue{
-    position:absolute;bottom:34px;left:50%;transform:translateX(-50%);
-    font-family:var(--mono);font-size:10.5px;letter-spacing:.35em;
-    text-transform:uppercase;color:var(--paper-faint);
-    display:flex;flex-direction:column;align-items:center;gap:10px;
-  }
-  .hero .scroll-cue span{width:1px;height:34px;background:var(--line);animation:pulse 2.4s ease-in-out infinite}
-  @keyframes pulse{0%,100%{opacity:.25;transform:scaleY(.5)}50%{opacity:1;transform:scaleY(1)}}
-
-  /* ---------- the lane ---------- */
-  .lane{padding:40px 0 20px;position:relative}
-  .lane::before{
-    content:"";position:absolute;top:0;bottom:0;left:50%;
-    width:1px;background:linear-gradient(var(--line-2),var(--line),var(--line-2));
-    transform:translateX(-50%);
-  }
-
-  /* ---------- a single reel ---------- */
-  .reel{
-    padding:66px 0;
-    position:relative;
-    opacity:0;transform:translateY(34px);
-    transition:opacity 1.1s ease,transform 1.1s ease;
-  }
-  .reel.in-view{opacity:1;transform:none}
-
-  .reel-head{
+    min-height:100vh;min-height:100svh;
     display:flex;align-items:center;justify-content:center;
-    gap:16px;margin-bottom:26px;
+    text-align:center;padding:64px 24px;
+    overflow:hidden;
   }
-  .reel-num{
-    font-family:var(--serif);
-    font-style:italic;
-    font-weight:300;
-    font-size:44px;
-    line-height:1;
-    color:var(--paper);
+  .wrap{max-width:760px;width:100%;margin:0 auto;position:relative;z-index:3}
+
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.42em;text-transform:uppercase;color:var(--paper-faint)}
+
+  /* ---------- title card ---------- */
+  .hero h1{font-weight:340;font-size:clamp(56px,15vw,150px);line-height:.9;letter-spacing:-.01em;font-optical-sizing:auto}
+  .hero h1 em{font-style:italic;font-weight:500}
+  .begin{
+    margin-top:52px;display:inline-flex;align-items:center;gap:14px;
+    background:none;border:1px solid var(--line);color:var(--paper);
+    font-family:var(--mono);font-size:12px;letter-spacing:.34em;text-transform:uppercase;
+    padding:16px 34px;border-radius:2px;cursor:pointer;
+    transition:border-color .5s ease,background .5s ease,letter-spacing .5s ease;
   }
-  .reel-meta{
-    font-family:var(--mono);font-size:11px;letter-spacing:.3em;
-    text-transform:uppercase;color:var(--paper-faint);text-align:left;
-  }
+  .begin:hover{border-color:var(--paper-dim);background:rgba(236,235,230,.04);letter-spacing:.4em}
+
+  /* ---------- memory background (fades in) ---------- */
+  .bg{position:absolute;inset:0;z-index:1;background-position:center;background-size:cover;opacity:0;transition:opacity 1.7s ease;transform:scale(1.04)}
+  .gray-photos .bg{filter:grayscale(1) contrast(1.05)}
+  .memory.active .bg{opacity:1}
+  .scrim{position:absolute;inset:0;z-index:2;background:linear-gradient(180deg,rgba(8,8,8,.82),rgba(8,8,8,.62) 40%,rgba(8,8,8,.86))}
+
+  /* ---------- memory content ---------- */
+  .memory .wrap{opacity:0;transform:translateY(22px);transition:opacity 1.1s ease .35s,transform 1.1s ease .35s}
+  .memory.active .wrap{opacity:1;transform:none}
+
+  .reel-head{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:22px}
+  .reel-num{font-family:var(--serif);font-style:italic;font-weight:300;font-size:40px;line-height:1}
+  .reel-meta{font-family:var(--mono);font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--paper-faint);text-align:left}
   .reel-meta b{display:block;color:var(--paper-dim);font-weight:400;letter-spacing:.34em}
 
-  /* film frame w/ sprocket perforations */
-  .frame-outer{position:relative;padding:0 15px}
-  .perf{
-    position:absolute;top:0;bottom:0;width:9px;
-    display:flex;flex-direction:column;justify-content:space-around;
-    padding:9px 0;
-  }
-  .perf.left{left:0}
-  .perf.right{right:0}
-  .perf i{display:block;height:11px;border-radius:2px;background:var(--line);}
+  .frame-outer{position:relative;padding:0 15px;margin:0 auto;max-width:min(730px,86vh)}
+  .perf{position:absolute;top:0;bottom:0;width:9px;display:flex;flex-direction:column;justify-content:space-around;padding:9px 0}
+  .perf.left{left:0}.perf.right{right:0}
+  .perf i{display:block;height:11px;border-radius:2px;background:var(--line)}
 
-  .frame{
-    position:relative;
-    aspect-ratio:16/9;
-    background:var(--frame);
-    border:1px solid var(--line);
-    overflow:hidden;
-    display:flex;align-items:center;justify-content:center;
-    box-shadow:0 30px 80px -40px rgba(0,0,0,.9),inset 0 0 90px rgba(0,0,0,.6);
-  }
-  .frame video,.frame iframe,.frame img{
-    width:100%;height:100%;object-fit:cover;border:0;display:block;
-    filter:grayscale(1) contrast(1.04);
-  }
+  .frame{position:relative;aspect-ratio:16/9;background:var(--frame);border:1px solid var(--line);overflow:hidden;display:flex;align-items:center;justify-content:center;box-shadow:0 30px 80px -40px rgba(0,0,0,.9),inset 0 0 90px rgba(0,0,0,.6);cursor:pointer}
+  .frame video,.frame iframe,.frame img{width:100%;height:100%;object-fit:cover;border:0;display:block;filter:grayscale(1) contrast(1.04)}
 
-  /* empty placeholder look */
-  .frame.empty{cursor:default}
-  .placeholder{
-    display:flex;flex-direction:column;align-items:center;gap:16px;
-    color:var(--paper-faint);text-align:center;padding:20px;
-  }
-  .placeholder .play{
-    width:56px;height:56px;border:1px solid var(--line);border-radius:50%;
-    display:flex;align-items:center;justify-content:center;
-  }
-  .placeholder .play::after{
-    content:"";width:0;height:0;margin-left:3px;
-    border-left:13px solid var(--paper-faint);
-    border-top:8px solid transparent;border-bottom:8px solid transparent;
-  }
-  .placeholder .lbl{
-    font-family:var(--mono);font-size:11px;letter-spacing:.32em;text-transform:uppercase;
-  }
+  .placeholder{display:flex;flex-direction:column;align-items:center;gap:14px;color:var(--paper-faint);text-align:center;padding:20px}
+  .placeholder .play{width:52px;height:52px;border:1px solid var(--line);border-radius:50%;display:flex;align-items:center;justify-content:center}
+  .placeholder .play::after{content:"";width:0;height:0;margin-left:3px;border-left:12px solid var(--paper-faint);border-top:8px solid transparent;border-bottom:8px solid transparent}
+  .placeholder .lbl{font-family:var(--mono);font-size:11px;letter-spacing:.32em;text-transform:uppercase}
 
-  /* quote */
-  .quote{margin-top:34px;text-align:center;padding:0 6px}
-  .quote blockquote{
-    font-family:var(--serif);font-style:italic;font-weight:300;
-    font-size:clamp(21px,3.4vw,29px);line-height:1.42;
-    letter-spacing:.005em;color:var(--paper);
-  }
+  .quote{margin-top:26px;padding:0 6px;cursor:pointer}
+  .quote blockquote{font-family:var(--serif);font-style:italic;font-weight:300;font-size:clamp(20px,3.2vw,27px);line-height:1.4;color:var(--paper)}
   .quote.empty blockquote{color:var(--paper-faint)}
-  .quote cite{
-    display:block;margin-top:18px;font-style:normal;
-    font-family:var(--mono);font-size:11px;letter-spacing:.28em;
-    text-transform:uppercase;color:var(--paper-dim);
-  }
+  .quote cite{display:block;margin-top:16px;font-style:normal;font-family:var(--mono);font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--paper-dim)}
 
-  /* ---------- footer ---------- */
-  .end{
-    text-align:center;padding:120px 24px 130px;position:relative;
+  /* ---------- continue button ---------- */
+  .continue{
+    margin-top:34px;background:none;border:0;cursor:pointer;color:var(--paper-faint);
+    font-family:var(--mono);font-size:11px;letter-spacing:.34em;text-transform:uppercase;
+    display:inline-flex;flex-direction:column;align-items:center;gap:12px;
+    transition:color .4s ease;
   }
-  .end .fin{
-    font-family:var(--serif);font-style:italic;font-weight:300;
-    font-size:clamp(34px,7vw,62px);color:var(--paper);
-  }
-  .end .sig{
-    margin-top:26px;font-family:var(--mono);font-size:11px;
-    letter-spacing:.3em;text-transform:uppercase;color:var(--paper-faint);
-  }
+  .continue:hover{color:var(--paper)}
+  .continue .arrow{width:1px;height:30px;background:currentColor;animation:pulse 2.4s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:.3;transform:scaleY(.5)}50%{opacity:1;transform:scaleY(1)}}
 
-  /* focus + reduced motion */
+  /* ---------- end card ---------- */
+  .end .fin{font-family:var(--serif);font-style:italic;font-weight:300;font-size:clamp(40px,9vw,84px)}
+  .end .sig{margin-top:22px;font-family:var(--mono);font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--paper-faint)}
+
+  /* sound hint */
+  .soundhint{position:fixed;bottom:18px;right:20px;z-index:31;font-family:var(--mono);font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--paper-faint);opacity:0;transition:opacity .6s ease;pointer-events:none}
+  .soundhint.show{opacity:1}
+
   a:focus-visible,button:focus-visible{outline:2px solid var(--paper);outline-offset:4px}
-  @media (prefers-reduced-motion:reduce){
-    *{animation:none!important}
-    html{scroll-behavior:auto}
-    .reel{opacity:1;transform:none;transition:none}
-  }
-
-  @media (max-width:560px){
-    .reel-num{font-size:36px}
-    .perf{display:none}
-    .frame-outer{padding:0}
-  }
+  @media (prefers-reduced-motion:reduce){*{animation:none!important}.bg,.memory .wrap{transition:opacity .5s ease}}
+  @media (max-width:560px){.reel-num{font-size:32px}.perf{display:none}.frame-outer{padding:0}}
 </style>
 </head>
-<body>
+<body class="locked gray-photos">
   <div class="grain"></div>
   <div class="vignette"></div>
+  <div class="soundhint" id="soundhint">♪ music playing — tap the video or quote to pause</div>
 
   <!-- ===================== TITLE CARD ===================== -->
-  <header class="hero">
-    <div class="card-rule"></div>
-    <p class="eyebrow">A Memory Lane</p>
-    <h1>For<span class="name">[ Her Name ]</span></h1>
-    <p class="dedication">Ten moments · kept on film</p>
-    <div class="scroll-cue">Begin<span></span></div>
-  </header>
+  <section class="screen hero" id="hero">
+    <div class="wrap">
+      <h1>Memory <em>Lane</em></h1>
+      <button class="begin" id="beginBtn">Begin</button>
+    </div>
+  </section>
 
-  <!-- ===================== THE REELS ===================== -->
-  <main class="lane">
-    <div class="wrap" id="reels"></div>
-  </main>
+  <!-- memories injected here -->
+  <div id="reels"></div>
 
   <!-- ===================== END CARD ===================== -->
-  <footer class="end">
-    <p class="eyebrow" style="margin-bottom:22px">Roll credits</p>
-    <p class="fin">Fin.</p>
-    <p class="sig">Made for you</p>
-  </footer>
+  <section class="screen end" id="end">
+    <div class="wrap">
+      <p class="eyebrow" style="margin-bottom:22px">Roll credits</p>
+      <p class="fin">Fin.</p>
+      <p class="sig">Made for you</p>
+    </div>
+  </section>
 
 <script>
-  /* =======================================================
-     FILL THIS IN — one entry per reel (10 total).
-     For each memory add:
+  /* =========================================================
+     FILL THIS IN — one entry per memory (10 total).
        quote   : the words
-       caption : who said it / a date / a place  (optional)
-       video   : { type:"youtube", src:"VIDEO_ID" }   ← just the id
-                 { type:"file",    src:"clip.mp4"  }   ← file next to this page
-       Leave the fields as "" to keep the empty placeholder.
-     ======================================================= */
+       caption : who said it / a date / a place   (optional)
+       image   : "photo1.jpg"   background that fades in
+       song    : "song1.mp3"    plays low; pauses on click
+       video   : { type:"youtube", src:"VIDEO_ID" }   (just the id)
+                 { type:"file",    src:"clip1.mp4"  }
+       Leave a field "" to keep its placeholder.
+
+     Put all your .jpg / .mp3 / .mp4 files in the SAME folder
+     as this index.html (the repo root) and just use the filename.
+     ========================================================= */
+  const GRAYSCALE_PHOTOS = true;   // set to false for full-color photos
+
   const memories = [
-    { quote:"", caption:"", video:{ type:"", src:"" } }, // 01
-    { quote:"", caption:"", video:{ type:"", src:"" } }, // 02
-    { quote:"", caption:"", video:{ type:"", src:"" } }, // 03
-    { quote:"", caption:"", video:{ type:"", src:"" } }, // 04
-    { quote:"", caption:"", video:{ type:"", src:"" } }, // 05
-    { quote:"", caption:"", video:{ type:"", src:"" } }, // 06
-    { quote:"", caption:"", video:{ type:"", src:"" } }, // 07
-    { quote:"", caption:"", video:{ type:"", src:"" } }, // 08
-    { quote:"", caption:"", video:{ type:"", src:"" } }, // 09
-    { quote:"", caption:"", video:{ type:"", src:"" } }, // 10
+    { quote:"", caption:"", image:"", song:"", video:{ type:"", src:"" } }, // 01
+    { quote:"", caption:"", image:"", song:"", video:{ type:"", src:"" } }, // 02
+    { quote:"", caption:"", image:"", song:"", video:{ type:"", src:"" } }, // 03
+    { quote:"", caption:"", image:"", song:"", video:{ type:"", src:"" } }, // 04
+    { quote:"", caption:"", image:"", song:"", video:{ type:"", src:"" } }, // 05
+    { quote:"", caption:"", image:"", song:"", video:{ type:"", src:"" } }, // 06
+    { quote:"", caption:"", image:"", song:"", video:{ type:"", src:"" } }, // 07
+    { quote:"", caption:"", image:"", song:"", video:{ type:"", src:"" } }, // 08
+    { quote:"", caption:"", image:"", song:"", video:{ type:"", src:"" } }, // 09
+    { quote:"", caption:"", image:"", song:"", video:{ type:"", src:"" } }, // 10
   ];
 
+  const MUSIC_VOLUME = 0.12;
   const pad = n => String(n).padStart(2,"0");
+  document.documentElement.classList.toggle("gray-photos", GRAYSCALE_PHOTOS);
+  document.body.classList.toggle("gray-photos", GRAYSCALE_PHOTOS);
 
-  function videoMarkup(v, i){
-    if(v && v.type === "youtube" && v.src){
-      return `<div class="frame">
-        <iframe src="https://www.youtube.com/embed/${v.src}"
-          title="Reel ${pad(i)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowfullscreen loading="lazy"></iframe></div>`;
-    }
-    if(v && v.type === "file" && v.src){
-      return `<div class="frame">
-        <video src="${v.src}" controls playsinline preload="metadata"></video></div>`;
-    }
-    return `<div class="frame empty">
-        <div class="placeholder">
-          <div class="play"></div>
-          <div class="lbl">Awaiting Reel ${pad(i)}</div>
-        </div></div>`;
+  function videoMarkup(v,i){
+    if(v && v.type==="youtube" && v.src)
+      return `<div class="frame"><iframe src="https://www.youtube.com/embed/${v.src}" title="Reel ${pad(i)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe></div>`;
+    if(v && v.type==="file" && v.src)
+      return `<div class="frame"><video src="${v.src}" controls playsinline preload="metadata"></video></div>`;
+    return `<div class="frame empty"><div class="placeholder"><div class="play"></div><div class="lbl">Awaiting Reel ${pad(i)}</div></div></div>`;
   }
-
   function quoteMarkup(m){
     const empty = m.quote ? "" : "empty";
     const text  = m.quote || "Your quote will live here.";
@@ -308,28 +199,121 @@
   const host = document.getElementById("reels");
   memories.forEach((m,idx)=>{
     const i = idx+1;
-    const el = document.createElement("article");
-    el.className = "reel";
-    el.innerHTML = `
-      <div class="reel-head">
-        <div class="reel-num">${pad(i)}</div>
-        <div class="reel-meta"><b>Reel ${pad(i)}</b>of ten</div>
-      </div>
-      <div class="frame-outer">
-        <div class="perf left"><i></i><i></i><i></i><i></i><i></i><i></i></div>
-        <div class="perf right"><i></i><i></i><i></i><i></i><i></i><i></i></div>
-        ${videoMarkup(m.video, i)}
-      </div>
-      ${quoteMarkup(m)}
-    `;
-    host.appendChild(el);
+    const sec = document.createElement("section");
+    sec.className = "screen memory";
+    sec.dataset.index = i;
+    sec.innerHTML = `
+      <div class="bg"></div>
+      <div class="scrim"></div>
+      <div class="wrap">
+        <div class="reel-head">
+          <div class="reel-num">${pad(i)}</div>
+          <div class="reel-meta"><b>Reel ${pad(i)}</b>of ten</div>
+        </div>
+        <div class="frame-outer">
+          <div class="perf left"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="perf right"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          ${videoMarkup(m.video,i)}
+        </div>
+        ${quoteMarkup(m)}
+        <button class="continue">Continue<span class="arrow"></span></button>
+      </div>`;
+
+    // background image
+    if(m.image) sec.querySelector(".bg").style.backgroundImage = `url("${m.image}")`;
+
+    // audio
+    if(m.song){
+      const a = new Audio(m.song);
+      a.loop = true; a.volume = MUSIC_VOLUME; a.preload = "auto";
+      sec._audio = a;
+    }
+    host.appendChild(sec);
   });
 
-  /* scroll reveal */
+  /* ---------------- navigation (locked walk) ---------------- */
+  const screens = [document.getElementById("hero"),
+                   ...document.querySelectorAll(".memory"),
+                   document.getElementById("end")];
+  let step = 0;
+  let unlocked = false;
+  let audioReady = false;
+
+  function goTo(n){
+    step = Math.max(0, Math.min(screens.length-1, n));
+    screens[step].scrollIntoView({behavior:"smooth"});
+    if(step === screens.length-1) releaseScroll(); // reached the end card
+  }
+  function releaseScroll(){
+    if(unlocked) return;
+    unlocked = true;
+    document.body.classList.remove("locked");
+  }
+
+  // block manual scrolling until the walk is done
+  function block(e){ if(!unlocked) e.preventDefault(); }
+  window.addEventListener("wheel", block, {passive:false});
+  window.addEventListener("touchmove", block, {passive:false});
+  window.addEventListener("keydown", e=>{
+    if(!unlocked && [" ","PageDown","PageUp","ArrowDown","ArrowUp","Home","End"].includes(e.key)) e.preventDefault();
+  });
+
+  // begin
+  document.getElementById("beginBtn").addEventListener("click", ()=>{
+    audioReady = true;
+    // prime the first memory's audio inside this click (autoplay unlock)
+    const first = document.querySelector(".memory");
+    if(first && first._audio){ first._audio.play().catch(()=>{}); }
+    goTo(1);
+  });
+
+  // continue buttons
+  document.querySelectorAll(".continue").forEach(btn=>{
+    btn.addEventListener("click", ()=>goTo(step+1));
+  });
+
+  /* ---------------- activate memory (bg fade + music) ---------------- */
+  let active = null;
+  const hint = document.getElementById("soundhint");
+
+  function activate(sec){
+    if(active === sec) return;
+    // stop previous song
+    if(active && active._audio){ active._audio.pause(); active._audio.currentTime = 0; }
+    document.querySelectorAll(".memory.active").forEach(s=>{ if(s!==sec) s.classList.remove("active"); });
+    active = sec;
+    sec.classList.add("active");
+    if(audioReady && sec._audio){
+      sec._audio.play().then(()=>showHint()).catch(()=>{});
+    }
+  }
+  function pauseActive(){
+    if(active && active._audio){ active._audio.pause(); }
+    hint.classList.remove("show");
+  }
+  let hintTimer;
+  function showHint(){
+    hint.classList.add("show");
+    clearTimeout(hintTimer);
+    hintTimer = setTimeout(()=>hint.classList.remove("show"), 4200);
+  }
+
+  // observe which memory is on screen (works during walk AND after unlock)
   const io = new IntersectionObserver(entries=>{
-    entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add("in-view"); io.unobserve(e.target); }});
-  },{ threshold:.18 });
-  document.querySelectorAll(".reel").forEach(r=>io.observe(r));
+    entries.forEach(e=>{ if(e.isIntersecting && e.intersectionRatio>0.55) activate(e.target); });
+  },{ threshold:[0,.55,1] });
+  document.querySelectorAll(".memory").forEach(s=>io.observe(s));
+
+  // clicking the video or quote pauses that memory's music
+  document.querySelectorAll(".memory").forEach(sec=>{
+    const stop = ()=>{ if(sec._audio) sec._audio.pause(); hint.classList.remove("show"); };
+    sec.querySelector(".frame").addEventListener("click", stop);
+    sec.querySelector(".quote").addEventListener("click", stop);
+    const vid = sec.querySelector("video");
+    if(vid) vid.addEventListener("play", stop);        // file video started
+  });
+  // YouTube (cross-origin) can't report clicks, but taking focus fires window blur
+  window.addEventListener("blur", ()=>{ if(document.activeElement && document.activeElement.tagName==="IFRAME") pauseActive(); });
 </script>
 </body>
 </html>
