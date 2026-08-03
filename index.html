@@ -154,13 +154,14 @@
      FILL THIS IN — one entry per memory (10 total).
 
        name  : the base filename (no extension). This ONE name
-               loads both the background and the song:
+               loads the background, the song, AND the video:
                   name + ".png"  -> background that fades in
-                  name + ".mp3"  -> song that plays low, pauses on click
+                  name + ".mp3"  -> song (plays low, pauses on click)
+                  name + ".mp4"  -> the video for that memory
        quote   : the words                      (add later)
        caption : who said it / a date / place    (optional)
-       video   : { type:"youtube", src:"VIDEO_ID" }   (just the id)
-                 { type:"file",    src:"clip.mp4"  }   (add later)
+       video   : only set this to override the .mp4 with a YouTube
+                 clip, e.g. { type:"youtube", src:"VIDEO_ID" }
 
      Put every .png / .mp3 / .mp4 in the SAME folder as this
      index.html (your repo root). Match the .mp3 name to the .png
@@ -169,16 +170,35 @@
   const GRAYSCALE_PHOTOS = true;   // set to false for full-color backgrounds
 
   const memories = [
-    { name:"a_qui_de_droit_",      quote:"", caption:"", video:{ type:"", src:"" } }, // 01
-    { name:"Breathe",              quote:"", caption:"", video:{ type:"", src:"" } }, // 02
-    { name:"buddy_buddy",          quote:"", caption:"", video:{ type:"", src:"" } }, // 03
-    { name:"choppa_melodies",      quote:"", caption:"", video:{ type:"", src:"" } }, // 04
-    { name:"Everyday",             quote:"", caption:"", video:{ type:"", src:"" } }, // 05
-    { name:"Heavent_Sent",         quote:"", caption:"", video:{ type:"", src:"" } }, // 06
-    { name:"Let_s_Lose_Our_Minds", quote:"", caption:"", video:{ type:"", src:"" } }, // 07
-    { name:"Mi_Amor",              quote:"", caption:"", video:{ type:"", src:"" } }, // 08
-    { name:"The_World_Is_Yours",   quote:"", caption:"", video:{ type:"", src:"" } }, // 09
-    { name:"Up_Off_1942",          quote:"", caption:"", video:{ type:"", src:"" } }, // 10
+    { name:"a_qui_de_droit_", quote:
+      "Yk Bae, sometimes i sit here and wonder how I got lucky in my life to have you. Out of everyone is this world, somehow our paths crossed fr, and now I honestly can’t imagine a life without your aren’t in it. Loving you, became the most natural thing i’ve do. Everyday you give my heart another reason to choose you all over again. You’re not just the person I love, your my home, my peace, and my comfort, and the only person who makes everything in my life feel complete. Whenever i’m with you, or even just hearing your voice the rest of the world seems to fade away because nothing compares to the happiness you bring me." }, // 01
+
+    { name:"Breathe", quote:
+      "Genuinely u make me want to become a better man every day. You inspire me to be more patient, more understanding, more loving, and someone you can always lean on. I want to be your safe place the same way you’ve become mine. I want to be the person who reminds you how beautiful you are when u forget, celebrating every little win with you, and who stays beside you thru every challenge life makes us. You deserve love that never makes you question where u stand, and i’ll spend everyday showing you that mine is exactly that fr" }, // 02
+
+    { name:"buddy_buddy", quote:
+      "I thank you for choosing me, for trusting me, for letting me love you, and for loving me in return. You have changed my life in ways I never thought another can. You’ve shown me what it feels like to truly care for someone with my whole heart, and i’ll never take it for granted. No matter how much time passes, no matter how many years go by, i’ll never stop looking at you with the same admiration fr. You’ll always be the most beautiful girl, my greatest blessing, my favorite hello and my hardest goodbye." }, // 03
+
+    { name:"choppa_melodies", quote:
+      "Goodnight my darling, my angel, my beautiful girl. I hope u sleep peacefully tonight and have the sweetest dreams, you describe nothing less. Thank you for being the light in my life, my comfort mc and the place my heart wants to be, no matter how any day goes, ending it knowing you’re mine is enough to make me smile. And love for tmr, can i have some more pictures of u. I love seeing your beautiful face so much. Every picture you send makes me so happy and I could stare at you forever without getting tired of it fr. Seeing you always brightens my day, and I’d love to have even more photos of my gorgeous wife to admired and sleep well my princess, yk ima always be thinking about you until i get to hear your beautiful cute voice. I love you so much, ur my forever. ❤️" }, // 04
+
+    { name:"Everyday", quote:
+      "My love, I genuinely don’t think words are capable of capturing how beautiful you are. You possess a kind of beauty that goes beyond what anyone can see, in your heart, your compassion, resilience, and every little thing that makes you who you are. The more I learn about you, the more certain J become that you are the greatest blessing life has ever given me. You inspire me to become a better man simply because loving you makes me want to become perfect as you. If i were given an infinite number of lifetimes and the chances to choose anyone each time, my decision would remain unchanged. I would search for you every single time, cause loving you isn’t something i do, it’s become the most natural part of who i am. You are and always will be my favorite place to call home ❤️" }, // 05
+
+    { name:"Heavent_Sent", quote:
+      "You’re genuinely the most beautiful girl i’ve ever laid eyes on, and nothing could ever change that. It’s not just your smile, your eyes or how pretty u are, it’s literally the way u carry yourself and your heart, everything that makes you who you are. Every little thing about js stand out to me, and i fall in love with you more every single  day every seconds. No matter what you think about yourself, you’ll always be the most beautiful woman in my eyes and i’ll never stop reminding you that and ur special to me. I’m so lucky and happy to call u mine" }, // 06
+
+    { name:"Let_s_Lose_Our_Minds", quote:
+      "Good morning Rae, I don’t think enough about how you’ve become a part of my everyday life. The little things I do now like, the way hearing ur voice makes me feel better, the everyday morning/night texting, and how you’re always the first person I want to to tell things to. You don’t make just make me feel loved, you make me feel understood, my favorite part of the day is when i see your name pop up anywhere on my phone, or when Im js chilling and I scroll thru my photos and see you, I look at em for hours. It’s just your so loving, beautiful, especially big brain smart, and you make ordinary moments feel so special and ur laughs are one of my favorite sounds. Everytime im feeling either stressed or sad, now its like instinct I come straight to u for comfort, I used to go to my friends but it’s now, u make everything that’s bad go away instantly. These are one of many ways why your my soulmate and destin to marry and have a life with and I love you with my whole heart, enjoy this fine tuesday and I hope work goes smoothly and who ever pisses u off make sure to grab the ar 😂, I love you sososososososo much ❤️❤️Your all i think about." }, // 07
+
+    { name:"Mi_Amor", quote:
+      "Rae honestly i don’t know what i would be without u on this earth, it’s like now every day i can’t go a second without you, every minute i need to hear your voice, every morning, evening, and night i need to see everything of you, every time I always say this, i will always be obsessed with you and everything about u, and i want us to be together forever. Literally i see the future us living a beautiful life having kids. There’s no other time or anything else i see doing without you. I love to go into my photos and look at the pictures u sent when im not able to speak to u during busy times, I love you so much with all my passion, I literally can’t wait for the day where i can hug u by ur waist and kiss u all over. Idc how long it takes me to get to you ik we will be together holding hands and kissing each other. I love you so much my beautiful and I hope u have the best night sleep and for tmr, i hope u get a great shift and ur hangout with ur friends, Just remember no matter what, no matter when or how, you will always have my heart and i’ll always love you, cause ur never leaving me, ur mine." }, // 08
+
+    { name:"The_World_Is_Yours", quote:
+      "My sweet beautiful gorgeous pretty sunshine angel I miss you so much, I’ve been looking at u every time i get the chance when it’s not busy, you’re so beautiful. I love you so much ❤️ I can’t wait to go see u and hug n kiss you and do everything with u when I get to the big PA." }, // 09
+
+    { name:"Up_Off_1942", quote:
+      "Babyyyyy I miss you so much, I miss you I more than I know how to explain it. I miss hearing your voice and seeing your smile and talking to you about anything that spawns in my brain. Even when we’re just texting I wish I can be holding you in my arms. You’re so beautiful my wife I love you smmmm. No matter how far we are my heart is always and will be with you ❤️." }, // 10
   ];
 
   const MUSIC_VOLUME = 0.12;
@@ -203,6 +223,9 @@
   const host = document.getElementById("reels");
   memories.forEach((m,idx)=>{
     const i = idx+1;
+    // video: use m.video if given (e.g. youtube), else fall back to name + ".mp4"
+    let vid = (m.video && m.video.src) ? m.video
+            : (m.name ? { type:"file", src:m.name + ".mp4" } : { type:"", src:"" });
     const sec = document.createElement("section");
     sec.className = "screen memory";
     sec.dataset.index = i;
@@ -213,7 +236,7 @@
         <div class="frame-outer">
           <div class="perf left"><i></i><i></i><i></i><i></i><i></i><i></i></div>
           <div class="perf right"><i></i><i></i><i></i><i></i><i></i><i></i></div>
-          ${videoMarkup(m.video,i)}
+          ${videoMarkup(vid,i)}
         </div>
         ${quoteMarkup(m)}
         <button class="continue">Continue<span class="arrow"></span></button>
@@ -242,7 +265,10 @@
   let audioReady = false;
   let furthest = 0;   // highest screen index she's allowed to reach
 
-  const maxScroll = () => screens[furthest].offsetTop;   // can scroll up freely, not past this
+  const maxScroll = () => {   // bottom of the furthest memory: lets long letters scroll fully, but not into the next
+    const s = screens[furthest];
+    return Math.max(0, s.offsetTop + s.offsetHeight - window.innerHeight);
+  };
 
   function goTo(n){
     n = Math.max(0, Math.min(screens.length-1, n));
@@ -312,10 +338,10 @@
     hintTimer = setTimeout(()=>hint.classList.remove("show"), 4200);
   }
 
-  // observe which memory is on screen (works during walk AND after unlock)
+  // observe which memory is at the viewport center (works for tall letters too)
   const io = new IntersectionObserver(entries=>{
-    entries.forEach(e=>{ if(e.isIntersecting && e.intersectionRatio>0.55) activate(e.target); });
-  },{ threshold:[0,.55,1] });
+    entries.forEach(e=>{ if(e.isIntersecting) activate(e.target); });
+  },{ rootMargin:"-45% 0px -45% 0px", threshold:0 });
   document.querySelectorAll(".memory").forEach(s=>io.observe(s));
 
   // clicking the video or quote pauses that memory's music
